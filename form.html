@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ทำแบบประเมินสุขภาพจิต</title>
+<style>
+    body {
+        font-family: 'Prompt', sans-serif;
+        margin: 0;
+        background: #f7fdf7;
+        color: #333;
+    }
+    header {
+        background-color: #4CAF50;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        font-size: 20px;
+        font-weight: bold;
+        position: relative;
+    }
+    header a {
+        position: absolute;
+        left: 15px;
+        top: 15px;
+        color: white;
+        text-decoration: none;
+        font-size: 16px;
+    }
+    .container {
+        max-width: 600px;
+        margin: 30px auto;
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .progress {
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    .progress-bar {
+        height: 10px;
+        width: 0;
+        background: #4CAF50;
+        transition: width 0.4s;
+    }
+    .question {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    .options button {
+        display: block;
+        width: 100%;
+        background: #f1f8e9;
+        border: 1px solid #c8e6c9;
+        padding: 15px;
+        margin-bottom: 10px;
+        font-size: 18px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .options button:hover {
+        background: #a5d6a7;
+    }
+    .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    .nav-buttons button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-size: 18px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .nav-buttons button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    .result {
+        text-align: center;
+        display: none;
+    }
+    .result h2 {
+        color: #2e7d32;
+        margin-bottom: 15px;
+    }
+    .result button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin-top: 15px;
+        font-size: 18px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html">← กลับ</a>
+    ทำแบบประเมินสุขภาพจิต
+</header>
+
+<div class="container">
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="quiz">
+        <div class="question" id="questionText"></div>
+        <div class="options" id="options"></div>
+        <div class="nav-buttons">
+            <button id="prevBtn" disabled>ย้อนกลับ</button>
+            <button id="nextBtn">ถัดไป</button>
+        </div>
+    </div>
+
+    <div class="result" id="result">
+        <h2>ผลการประเมินของคุณ</h2>
+        <p id="resultText"></p>
+        <button onclick="location.href='index.html'">กลับหน้าหลัก</button>
+    </div>
+</div>
+
+<script>
+const questions = [
+    { text: "ในช่วง 2 สัปดาห์ที่ผ่านมา คุณรู้สึกเศร้าหรือท้อแท้หรือไม่?", options: ["ไม่เลย", "เล็กน้อย", "บ่อยครั้ง", "เกือบทุกวัน"] },
+    { text: "คุณรู้สึกวิตกกังวลหรือไม่?", options: ["ไม่เลย", "เล็กน้อย", "บ่อยครั้ง", "เกือบทุกวัน"] },
+    { text: "คุณนอนหลับได้ปกติหรือไม่?", options: ["ปกติ", "หลับยาก", "ตื่นบ่อย", "นอนไม่หลับเลย"] }
+];
+
+let current = 0;
+let answers = [];
+const questionText = document.getElementById('questionText');
+const optionsDiv = document.getElementById('options');
+const nextBtn = document.getElementById('nextBtn');
+const prevBtn = document.getElementById('prevBtn');
+const progressBar = document.getElementById('progressBar');
+const quizDiv = document.getElementById('quiz');
+const resultDiv = document.getElementById('result');
+const resultText = document.getElementById('resultText');
+
+function loadQuestion() {
+    questionText.textContent = questions[current].text;
+    optionsDiv.innerHTML = '';
+    questions[current].options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => { answers[current] = i; nextBtn.disabled = false; };
+        optionsDiv.appendChild(btn);
+    });
+    prevBtn.disabled = current === 0;
+    nextBtn.textContent = (current === questions.length - 1) ? 'ส่งผลลัพธ์' : 'ถัดไป';
+    nextBtn.disabled = answers[current] === undefined;
+    progressBar.style.width = ((current + 1) / questions.length) * 100 + '%';
+}
+
+nextBtn.onclick = () => {
+    if (current < questions.length - 1) {
+        current++;
+        loadQuestion();
+    } else {
+        showResult();
+    }
+};
+
+prevBtn.onclick = () => {
+    if (current > 0) {
+        current--;
+        loadQuestion();
+    }
+};
+
+function showResult() {
+    quizDiv.style.display = 'none';
+    resultDiv.style.display = 'block';
+    const score = answers.reduce((a, b) => a + b, 0);
+    if (score < 3) resultText.textContent = "สุขภาพจิตของคุณอยู่ในเกณฑ์ดี แต่ควรดูแลตัวเองต่อไป";
+    else if (score < 6) resultText.textContent = "เริ่มมีความเครียด ควรพักผ่อนและปรึกษาคนใกล้ชิด";
+    else resultText.textContent = "ควรติดต่อสายด่วนสุขภาพจิต 1323 หรือพบผู้เชี่ยวชาญ";
+}
+
+loadQuestion();
+</script>
+
+</body>
+</html>
